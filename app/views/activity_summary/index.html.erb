@@ -1,0 +1,51 @@
+<h3>Planilla de Detalle</h3>
+
+<div class="filters">
+  <div class="filter-row">
+    <div class="filter-field">
+      <label for="project_id">Proyecto:</label>
+      <%= select_tag :project_id, options_for_select([['Todos', '']] + @projects.pluck(:name, :id)), include_blank: 'Seleccionar Proyecto', id: 'project_id' %>
+    </div>
+    <div class="filter-field">
+      <label for="issue_id">Tareas:</label>
+      <%= select_tag :issue_id, options_for_select([['Todos', '']] + @tasks.pluck(:subject, :id)), include_blank: 'Seleccionar Tarea', id: 'issue_id' %>
+    </div>
+    <div class="filter-field">
+      <label for="user_id">Usuario:</label>
+      <%= select_tag :user_id, options_for_select([['Todos', '']] + @users.map { |u| ["#{u.firstname} #{u.lastname}", u.id] }), include_blank: 'Seleccionar Usuario', id: 'user_id' %>
+    </div>
+  </div>
+
+  <!-- Fila para Fecha Inicio y Fecha Fin en la misma línea -->
+  <div class="date-row">
+    <div class="date-field">
+      <label for="start_date">Fecha Inicio (mm/dd/yyyy):</label>
+      <%= date_field_tag :start_date, Date.today.prev_month.beginning_of_month, id: 'start_date', lang: 'es-ES' %>
+    </div>
+    <div class="date-field">
+      <label for="end_date">Fecha Fin (mm/dd/yyyy):</label>
+      <%= date_field_tag :end_date, Date.today.prev_month.end_of_month, id: 'end_date', lang: 'es-ES' %>
+    </div>
+  </div>
+
+
+  <div class="month-navigation">
+    <button type="button" id="prev-month" class="btn-month">Mes Anterior</button>
+    <button type="button" id="next-month" class="btn-month">Mes Siguiente</button>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-field button-field">
+      <label>&nbsp;</label>
+      <%= button_tag 'Filtrar', id: 'filter-button', class: 'btn-filter' %>
+    </div>
+  </div>
+</div>
+
+<!-- Separador entre el filtro y la planilla -->
+<div class="separator"></div>
+
+<div id="planilla-container"></div>
+
+<%= stylesheet_link_tag 'activity_summary', plugin: 'resumen_actividades' %>
+<%= javascript_include_tag 'activity_summary', plugin: 'resumen_actividades' %>

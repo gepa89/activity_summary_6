@@ -1,0 +1,91 @@
+<% if user_summaries.present? %>
+  <% user_summaries.each do |user, summary| %>
+    <div class="user-summary-container">
+      <h3>Resumen de <%= user %></h3>
+      <table class="styled-summary-table">
+        <thead>
+          <tr>
+            <th>Tipo de Actividad</th>
+            <th>Horas</th>
+            <th>% Relación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% total_percentage = 0 %> <!-- Inicializa el total del porcentaje -->
+          <% summary[:activities].each do |activity| %>
+            <% total_percentage += activity[:percentage].to_f %> <!-- Suma los porcentajes -->
+            <tr>
+              <td><%= activity[:activity_type] %></td>
+              <td><%= activity[:hours] %></td>
+              <td><%= activity[:percentage] %></td> <!-- Asegura el símbolo % -->
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td><strong>Total</strong></td>
+            <td><%= summary[:total_hours] %></td>
+            <td><%= total_percentage.round(2) %>%</td> <!-- Muestra el porcentaje total redondeado -->
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% end %>
+<% end %>
+
+
+<div class="separator"></div>
+
+<% if summary.present? %>
+  <% summary.group_by(&:user_name).each do |user_name, user_entries| %>
+    <h3>Planilla de tiempo dedicado</h3>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>Proyecto</th>
+          <th>Petición</th>
+          <th>Usuario</th>
+          <th>Comentario</th>
+          <th>Actividad</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Horas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% total_hours = 0 %> <!-- Inicializa el total de horas -->
+        <% user_entries.group_by(&:project_name).each do |project_name, project_entries| %>
+          <% project_entries.group_by(&:petition).each do |petition, petition_entries| %>
+            <% petition_entries.each_with_index do |entry, index| %>
+              <% total_hours += entry.hours %> <!-- Suma las horas -->
+              <tr>
+                <% if index == 0 %>
+                  <td rowspan="<%= petition_entries.size %>"><%= project_name %></td>
+                  <td rowspan="<%= petition_entries.size %>"><%= petition %></td>
+                  <td rowspan="<%= petition_entries.size %>"><%= user_name %></td> 
+                <% end %>
+                <td><%= entry.comment %></td>
+                <td><%= entry.activity_name %></td>
+                <td><%= entry.status %></td>
+                <td><%= entry.fecha %></td>
+                <td><%= entry.hours %></td>
+              </tr>
+            <% end %>
+          <% end %>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="7" style="text-align: right;"><strong>Total de Horas:</strong></td>
+          <td><%= total_hours %></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="separator"></div>
+  <% end %>
+<% else %>
+  <p>No hay resultados para los filtros seleccionados.</p>
+<% end %>
+
+<%= link_to 'Exportar CSV', activity_summary_export_csv_path(request.query_parameters), class: 'btn-export' %>

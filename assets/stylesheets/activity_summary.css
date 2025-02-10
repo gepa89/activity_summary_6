@@ -1,0 +1,315 @@
+html {
+  font-size: 80% !important; 
+}
+
+/* Contenedor principal de filtros */
+.filters {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+  box-sizing: border-box;
+  width: 50%;
+  margin-left: 0;
+  float: left;
+}
+
+/* Filtros alineados en fila */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* Cada campo del filtro */
+.filter-field {
+  flex: 1;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+.filter-field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Inputs y Selects */
+.filters select,
+.filters input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Fila para Fecha Inicio y Fecha Fin */
+.date-row {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.date-field {
+  flex: 1;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+/* Botón Filtrar */
+.filters .btn-filter {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.filters .btn-filter:hover {
+  background-color: #0056b3;
+}
+
+/* Separador */
+.separator {
+  height: 2px;
+  background-color: #ccc;
+  margin: 20px 0;
+  clear: both;
+}
+
+/* Tabla Principal */
+#planilla-container {
+  margin-top: 20px;
+  overflow-x: auto;
+  clear: both;
+  text-align: left; /* Alinear el contenido a la izquierda */
+}
+
+#planilla-container table {
+  border-collapse: collapse;
+  margin-left: 0; /* Alinear la tabla a la izquierda */
+  width: auto;
+  table-layout: auto;
+}
+
+#planilla-container th,
+#planilla-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#planilla-container th {
+  background-color: #007b83;
+  color: white;
+}
+
+/* Estilos para Resúmenes por Usuario */
+#user-summaries {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  justify-content: flex-start; /* Alinear resúmenes a la izquierda */
+}
+
+.user-summary {
+  border: 1px solid #007b83;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  max-width: 100%;
+  text-align: left; /* Alinear contenido del resumen a la izquierda */
+}
+
+.user-summary h4 {
+  text-align: center;
+  background-color: #007b83;
+  color: white;
+  padding: 5px;
+  border-radius: 5px 5px 0 0;
+  margin: 0;
+}
+
+/* Tabla de resumen de usuario */
+.summary-table {
+  border-collapse: collapse;
+  margin-left: 0; /* Alinear la tabla a la izquierda */
+  width: auto;
+  table-layout: auto;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.summary-table th {
+  background-color: #007b83;
+  color: white;
+}
+
+/* Fila de Totales */
+.summary-table tfoot {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+
+/* Estilos para Totales */
+.user-summary .total-row {
+  font-weight: bold;
+  background-color: #e0e0e0;
+}
+
+/* Contenedor de Resumen de Usuario */
+.user-summary-container {
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+/* Tabla Estilizada para el Resumen */
+.styled-summary-table {
+  border-collapse: collapse;
+  margin-left: 0; /* Alinear la tabla a la izquierda */
+  width: auto;
+  table-layout: auto;
+}
+
+.styled-summary-table th,
+.styled-summary-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.styled-summary-table th {
+  background-color: #007b83;
+  color: white;
+}
+
+.styled-summary-table tfoot {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .accordion, .filters {
+    width: 90%;
+    margin: 20px auto;
+    float: none;
+  }
+
+  .filter-row, .date-row {
+    flex-direction: column;
+  }
+
+  #user-summaries {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .user-summary {
+    width: 100%;
+  }
+
+  .summary-table,
+  .styled-summary-table,
+  #planilla-container table {
+    width: 100%;
+  }
+}
+.btn-export {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+  display: inline-block;
+}
+
+.btn-export:hover {
+  background-color: #218838;
+}
+
+.month-navigation {
+  display: flex;
+  flex-direction: row; /* Asegura la disposición en fila */
+  gap: 10px;           /* Aplica el espacio entre los botones */
+  justify-content: space-between; 
+  margin-bottom: 10px;
+}
+
+.btn-month {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-month:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo del botón Exportar CSV */
+.btn-export {
+  background-color: #007bff;       /* Azul suave */
+  color: white !important;         /* Forzar texto en blanco */
+  padding: 6px 12px;               /* Espaciado interno */
+  border: none;                    /* Sin bordes */
+  border-radius: 4px;              /* Bordes redondeados */
+  font-size: 14px;                 /* Tamaño de fuente */
+  cursor: pointer;                 /* Cursor tipo mano */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;  /* Transición suave */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  /* Sutil sombra */
+  text-decoration: none !important; /* Eliminar subrayado */
+  display: inline-block;           /* Mantener como bloque en línea */
+  text-align: center;              /* Centrar texto */
+  font-weight: 500;                /* Peso de fuente medio */
+}
+
+/* Hover */
+.btn-export:hover {
+  background-color: #0056b3;       /* Azul más oscuro al pasar el mouse */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* Mayor sombra */
+  text-decoration: none !important; /* Asegurar que no haya subrayado */
+}
+
+/* Active (clic) */
+.btn-export:active {
+  background-color: #004080;       /* Azul más oscuro al hacer clic */
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2) inset; /* Sombra interna */
+}
+
+/* Disabled */
+.btn-export:disabled,
+.btn-export[disabled] {
+  background-color: #cccccc;       /* Gris claro */
+  color: #666666 !important;       /* Texto gris oscuro */
+  cursor: not-allowed;             /* Cursor no permitido */
+  box-shadow: none;                /* Sin sombras */
+  text-decoration: none !important; /* Asegurar sin subrayado */
+}
