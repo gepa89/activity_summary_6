@@ -1,8 +1,10 @@
 RedmineApp::Application.routes.draw do
-  # Agrupar rutas relacionadas con activity_summary
-  scope 'activity_summary', controller: 'activity_summary' do
-    get '/', action: 'index', as: 'activity_summary'
-    get '/export_csv', action: 'export_csv', as: 'activity_summary_export_csv'
-    post '/filter', action: 'filter', as: 'filter_activity_summary'
+  # Definir rutas optimizadas para `activity_summary`
+  resources :activity_summary, only: [:index], as: 'activity_summary' do
+    collection do
+      get :export_csv
+      get :export_to_excel  # Se añadió exportación a Excel
+      post :filter
+    end
   end
 end

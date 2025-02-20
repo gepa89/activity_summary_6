@@ -13,11 +13,11 @@
         <tbody>
           <% total_percentage = 0 %> <!-- Inicializa el total del porcentaje -->
           <% summary[:activities].each do |activity| %>
-            <% total_percentage += activity[:percentage].to_f %> <!-- Suma los porcentajes -->
+            <% total_percentage += activity[:percentage].to_f if activity[:percentage].present? %>
             <tr>
               <td><%= activity[:activity_type] %></td>
               <td><%= activity[:hours] %></td>
-              <td><%= activity[:percentage] %></td> <!-- Asegura el símbolo % -->
+              <td><%= activity[:percentage] %></td>
             </tr>
           <% end %>
         </tbody>
@@ -25,14 +25,13 @@
           <tr class="total-row">
             <td><strong>Total</strong></td>
             <td><%= summary[:total_hours] %></td>
-            <td><%= total_percentage.round(2) %>%</td> <!-- Muestra el porcentaje total redondeado -->
+            <td><%= total_percentage.round(2) %>%</td>
           </tr>
         </tfoot>
       </table>
     </div>
   <% end %>
 <% end %>
-
 
 <div class="separator"></div>
 
@@ -53,16 +52,17 @@
         </tr>
       </thead>
       <tbody>
-        <% total_hours = 0 %> <!-- Inicializa el total de horas -->
+        <% total_hours = 0 %>
         <% user_entries.group_by(&:project_name).each do |project_name, project_entries| %>
           <% project_entries.group_by(&:petition).each do |petition, petition_entries| %>
+            <% rowspan_value = petition_entries.size > 1 ? petition_entries.size : nil %> 
             <% petition_entries.each_with_index do |entry, index| %>
-              <% total_hours += entry.hours %> <!-- Suma las horas -->
+              <% total_hours += entry.hours %>
               <tr>
-                <% if index == 0 %>
-                  <td rowspan="<%= petition_entries.size %>"><%= project_name %></td>
-                  <td rowspan="<%= petition_entries.size %>"><%= petition %></td>
-                  <td rowspan="<%= petition_entries.size %>"><%= user_name %></td> 
+                <% if index == 0 && rowspan_value %>
+                  <td rowspan="<%= rowspan_value %>"><%= project_name %></td>
+                  <td rowspan="<%= rowspan_value %>"><%= petition %></td>
+                  <td rowspan="<%= rowspan_value %>"><%= user_name %></td>
                 <% end %>
                 <td><%= entry.comment %></td>
                 <td><%= entry.activity_name %></td>
@@ -85,7 +85,9 @@
     <div class="separator"></div>
   <% end %>
 <% else %>
-  <p>No hay resultados para los filtros seleccionados.</p>
+  <div class="no-results">
+    <p>No hay registros disponibles con los filtros seleccionados.</p>
+  </div>
 <% end %>
 
 <%= link_to 'Exportar CSV', activity_summary_export_csv_path(request.query_parameters), class: 'btn-export' %>

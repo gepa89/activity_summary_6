@@ -24,7 +24,7 @@ Este plugin para **Redmine 4.0.4** permite generar resúmenes de actividades de 
 
    ```bash
    cd /path/to/redmine/plugins
-   git clone <URL_DEL_REPOSITORIO> resumen_actividades
+   git clone <URL_DEL_REPOSITORIO> activity_summary
    ```
 
 2. **Instalar las gemas necesarias:**
@@ -94,7 +94,7 @@ Este plugin para **Redmine 4.0.4** permite generar resúmenes de actividades de 
 ## 🛠️ **Estructura del Plugin**
 
 ```
-resumen_actividades/
+activity_summary/
 ├── app/
 │   ├── controllers/
 │   │   └── activity_summary_controller.rb

@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
   const filterButton = document.getElementById('filter-button');
-  const exportButton = document.getElementById('export-excel');
   const prevMonthBtn = document.getElementById('prev-month');
   const nextMonthBtn = document.getElementById('next-month');
   const startDateInput = document.getElementById('start_date');
   const endDateInput = document.getElementById('end_date');
+  const planillaContainer = document.getElementById('planilla-container');
 
   // Formatear la fecha en yyyy-MM-dd
   const formatDateForInput = (date) => {
@@ -23,16 +23,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Obtener parámetros del filtro
   const getFilterParams = () => ({
-    project_id: document.getElementById('project_id').value,
-    issue_id: document.getElementById('issue_id').value,
-    user_id: document.getElementById('user_id').value,
-    start_date: startDateInput.value,
-    end_date: endDateInput.value
+    project_id: document.getElementById('project_id')?.value || '',
+    issue_id: document.getElementById('issue_id')?.value || '',
+    user_id: document.getElementById('user_id')?.value || '',
+    start_date: startDateInput.value || '',
+    end_date: endDateInput.value || ''
   });
 
   // Filtrar los datos
   const filterData = () => {
     const params = getFilterParams();
+
+    // Mostrar mensaje de carga
+    planillaContainer.innerHTML = '<p class="loading-message">Cargando datos...</p>';
 
     fetch('/activity_summary/filter', {
       method: 'POST',
@@ -42,18 +45,23 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       body: JSON.stringify(params)
     })
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('planilla-container').innerHTML = html;
+      .then(response => {
+        if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
+        return response.text();
       })
-      .catch(error => console.error('Error:', error));
+      .then(html => {
+        planillaContainer.innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error en la petición:', error);
+        planillaContainer.innerHTML = '<p class="error-message">Hubo un error al cargar los datos. Intente nuevamente.</p>';
+      });
   };
 
   // Cambiar de mes
   const changeMonth = (direction) => {
-    let currentDate = startDateInput.value 
-      ? new Date(startDateInput.value + 'T00:00:00Z') 
-      : new Date();
+    let currentDate = new Date(startDateInput.value);
+    if (isNaN(currentDate)) currentDate = new Date();
 
     // Fijar al primer día del mes actual para evitar errores
     currentDate.setUTCDate(1);
