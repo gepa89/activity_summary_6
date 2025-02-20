@@ -112,7 +112,20 @@ resumen_actividades/
 ├── README.md
 ```
 
----
+# ✅ Dependencias necesarias que ya están en Redmine 6.0.3
+
+Redmine 6.0.3 ya incluye todas las dependencias clave que el plugin necesita:
+
+| 📦 **Gema**               | ✅ **Incluida en Redmine 6.0.3** | 📌 **Usada en el Plugin** |
+|---------------------------|--------------------------------|---------------------------|
+| **Rails 6.x**             | ✅ Sí                          | El plugin usa Rails 6 para formularios y rutas |
+| **ActiveRecord**          | ✅ Sí                          | Para consultas a la base de datos |
+| **CSV**                   | ✅ Sí                          | Para exportar datos en CSV |
+| **ActionView**            | ✅ Sí                          | Para renderizar vistas y _partials_ |
+| **Redmine::AccessControl**| ✅ Sí                          | Para gestionar permisos de usuarios |
+| **Redmine::Plugin**       | ✅ Sí                          | Para la inicialización del plugin |
+
+🔹 **No es necesario instalar manualmente ninguna de estas gemas.**
 
 ## 🔐 **Permisos y Configuración de Acceso**
 
