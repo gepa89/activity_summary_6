@@ -14,12 +14,13 @@ Redmine::Plugin.register :activity_summary do
   # Definir permisos para el módulo del proyecto
   project_module :activity_summary do
     permission :view_activity_summary, { activity_summary: [:index] }, public: false
+    permission :filter_activity_summary, { activity_summary: [:filter] }, public: false
     permission :export_activity_summary, { activity_summary: [:export_csv, :export_to_excel] }, public: false
   end
 
   # Agregar al menú superior solo para usuarios con permisos
   menu :top_menu, :activity_summary, 
-       { controller: 'activity_summary', action: 'index' },
+       { controller: 'activity_summary', action: 'index', only_path: true },
        caption: 'Resumen de Actividades',
        if: Proc.new { User.current.allowed_to?(:view_activity_summary, nil, global: true) }
 end

@@ -2,13 +2,15 @@ class ActivitySummaryController < ApplicationController
   before_action :require_admin
   before_action :retrieve_query, only: [:index, :filter, :export_csv, :export_to_excel]
 
-  helper :queries # 🔹 Incluir el helper de Queries
-  include QueriesHelper # 🔹 Incluir métodos de QueriesHelper
+  helper :queries
+  include QueriesHelper
 
   def index
-    # 🔹 Se obtienen los datos filtrados por Redmine
     @summary = fetch_summary(@query.results_scope)
     @user_summaries = generate_user_summaries(@summary)
+  rescue StandardError => e
+    flash[:error] = "Error al cargar el resumen: #{e.message}"
+    redirect_to home_path
   end
 
   def filter
@@ -16,6 +18,8 @@ class ActivitySummaryController < ApplicationController
     @user_summaries = generate_user_summaries(@summary)
 
     render partial: 'planilla', locals: { summary: @summary, user_summaries: @user_summaries }
+  rescue StandardError => e
+    render json: { error: "Error al filtrar datos: #{e.message}" }, status: :unprocessable_entity
   end
 
   def export_csv
@@ -24,6 +28,9 @@ class ActivitySummaryController < ApplicationController
 
     csv_data = generate_csv(@summary, @user_summaries)
     send_data csv_data, filename: "reporte_redmine_#{Date.today}.csv", type: 'text/csv'
+  rescue StandardError => e
+    flash[:error] = "Error al exportar CSV: #{e.message}"
+    redirect_to activity_summary_index_path
   end
 
   def export_to_excel
@@ -35,11 +42,13 @@ class ActivitySummaryController < ApplicationController
         response.headers['Content-Disposition'] = "attachment; filename=activity_summary_#{Date.today}.xlsx"
       end
     end
+  rescue StandardError => e
+    flash[:error] = "Error al exportar a Excel: #{e.message}"
+    redirect_to activity_summary_index_path
   end
 
   private
 
-  # 🔹 Cargar la Query de Redmine para aplicar los filtros
   def retrieve_query
     if params[:query_id].present?
       @query = TimeEntryQuery.find(params[:query_id])
@@ -47,14 +56,15 @@ class ActivitySummaryController < ApplicationController
       @query = TimeEntryQuery.new(name: 'Resumen de Actividades')
       @query.build_from_params(params) if params[:set_filter]
     end
+  rescue ActiveRecord::RecordNotFound
+    flash[:error] = "Consulta de tiempo no encontrada."
+    redirect_to home_path
   end
 
-  # 🔹 Consultar registros con los filtros aplicados
   def fetch_summary(scope)
     scope
       .joins(:project, :user, :activity)
-      .left_joins(:issue)
-      .left_joins("LEFT JOIN issue_statuses ON issue_statuses.id = issues.status_id")
+      .left_joins(:issue, "LEFT JOIN issue_statuses ON issue_statuses.id = issues.status_id")
       .select(
         'projects.name AS project_name',
         'issues.subject AS petition',
@@ -66,10 +76,12 @@ class ActivitySummaryController < ApplicationController
         'time_entries.hours AS hours'
       )
       .order('projects.name ASC, time_entries.spent_on DESC')
-      .limit(500) # Evita sobrecarga de datos
+      .limit(500)
+  rescue StandardError => e
+    logger.error "Error al obtener el resumen: #{e.message}"
+    []
   end
 
-  # 🔹 Generar resúmenes por usuario y actividad
   def generate_user_summaries(entries)
     return {} unless entries.is_a?(Array) && entries.any?
 
@@ -84,9 +96,11 @@ class ActivitySummaryController < ApplicationController
 
       { total_hours: total_hours, activities: activities }
     end
+  rescue StandardError => e
+    logger.error "Error al generar resúmenes de usuario: #{e.message}"
+    {}
   end
 
-  # 🔹 Generar datos CSV para la exportación
   def generate_csv(summary, user_summaries)
     CSV.generate(headers: false) do |csv|
       user_summaries.each_with_index do |(user, summary), index|
@@ -124,5 +138,8 @@ class ActivitySummaryController < ApplicationController
         ]
       end
     end
+  rescue StandardError => e
+    logger.error "Error al generar CSV: #{e.message}"
+    ""
   end
 end

@@ -1,16 +1,13 @@
 <h3>Planilla de Detalle</h3>
 
-<!-- 🔹 Contenedor principal con la clase correcta -->
 <div class="query_form_with_buttons">
-
-  <!-- 🔹 Formulario de filtros -->
   <form id="query_form" class="query-form" action="<%= activity_summary_index_path %>" accept-charset="UTF-8" method="get">
-
-    <!-- 🔹 Sección de filtros con acordeón -->
+    
+    <!-- 🔹 Sección de filtros de Redmine -->
     <fieldset class="collapsible filters">
       <legend onclick="toggleFieldset(this);" class="icon icon-expanded">
         <svg class="s18 icon-svg" aria-hidden="true">
-          <use href="/assets/icons.svg#icon--angle-down"></use>
+          <use href="<%= asset_path('icons.svg') %>#icon--angle-down"></use>
         </svg>
         <%= l(:label_filter_plural) %>
       </legend>
@@ -19,36 +16,21 @@
       </div>
     </fieldset>
 
-    <!-- 🔹 Opciones adicionales (colapsado por defecto) -->
-    <fieldset id="options" class="collapsible collapsed">
-      <legend onclick="toggleFieldset(this);" class="icon icon-collapsed">
-        <svg class="s18 icon-svg" aria-hidden="true">
-          <use href="/assets/icons.svg#icon--angle-right"></use>
-        </svg>
-        <%= l(:label_options) %>
-      </legend>
-      <div class="hidden">
-        <!-- Aquí puedes agregar más opciones si Redmine lo requiere -->
-      </div>
-    </fieldset>
-
-    <!-- 🔹 Botones de acción alineados con el diseño de Redmine -->
     <p class="buttons">
       <a href="#" onclick="$('#query_form').submit(); return false;" class="icon icon-checked">
         <svg class="s18 icon-svg" aria-hidden="true">
-          <use href="/assets/icons.svg#icon--checked"></use>
+          <use href="<%= asset_path('icons.svg') %>#icon--checked"></use>
         </svg>
         <span class="icon-label"><%= l(:button_apply) %></span>
       </a>
 
       <a class="icon icon-reload" href="<%= activity_summary_index_path(set_filter: 1, sort: '') %>">
         <svg class="s18 icon-svg" aria-hidden="true">
-          <use href="/assets/icons.svg#icon--reload"></use>
+          <use href="<%= asset_path('icons.svg') %>#icon--reload"></use>
         </svg>
         <span class="icon-label"><%= l(:button_clear) %></span>
       </a>
     </p>
-
   </form>
 </div>
 
@@ -62,4 +44,9 @@
 <% content_for :header_tags do %>
   <%= stylesheet_link_tag 'application' %>
   <%= stylesheet_link_tag 'responsive' %>
+  <%= javascript_include_tag 'application' %>
+  <%= javascript_include_tag 'responsive' %>
+  <%= javascript_include_tag asset_path('i18n/datepicker-en-US.js') %>
+
 <% end %>
+
