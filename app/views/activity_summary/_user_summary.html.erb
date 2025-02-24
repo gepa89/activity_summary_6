@@ -7,28 +7,24 @@
     </tr>
   </thead>
   <tbody>
-    <% total_hours = 0 %>  <!-- Inicializamos la variable para el total de horas -->
+    <% total_percentage = 0.0 %> <!-- Inicializamos el acumulador de porcentaje -->
 
     <% summary[:activities].each do |activity| %>
       <tr>
         <td style="text-align: left; border: 1px solid #ddd; padding: 8px;"><%= activity[:activity_type] %></td>
         <td style="text-align: right; border: 1px solid #ddd; padding: 8px;"><%= activity[:hours] %></td>
-        <td style="text-align: right; border: 1px solid #ddd; padding: 8px;"><%= activity[:percentage] %></td>
+        <td style="text-align: right; border: 1px solid #ddd; padding: 8px;">
+          <%= activity[:percentage] %>
+        </td>
       </tr>
-      <% total_hours += activity[:hours].to_f %>  <!-- Acumulamos las horas -->
+      <% total_percentage += activity[:percentage].to_f %>  <!-- Acumulamos el porcentaje -->
     <% end %>
 
     <!-- Fila de total de horas -->
     <tr class="footer-row" style="font-weight: bold; background-color: #f1f1f1;">
       <td style="text-align: left; padding: 8px;">Totales:</td>
-      <td style="text-align: right; padding: 8px;"><%= total_hours %></td>  <!-- Mostramos el total acumulado de horas -->
-      <td style="text-align: right; padding: 8px;">
-        <% if total_hours > 0 %>
-          <%= ((total_hours / total_hours) * 100).round(2) %>  <!-- Muestra el 100% porque es el total acumulado -->
-        <% else %>
-          0%
-        <% end %>
-      </td>  
+      <td style="text-align: right; padding: 8px;"><%= summary[:total_hours] %></td>  <!-- Usa el formato horas / registros del backend -->
+      <td style="text-align: right; padding: 8px;"><%= total_percentage.round(2) %>%</td>  <!-- Muestra la suma real de los porcentajes -->
     </tr>
   </tbody>
 </table>

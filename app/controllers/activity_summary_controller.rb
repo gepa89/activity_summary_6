@@ -8,16 +8,12 @@ class ActivitySummaryController < ApplicationController
   helper :queries
   include QueriesHelper
 
-  # Método filter para realizar el filtrado de datos
   def filter
     @summary = @query.respond_to?(:results_scope) ? fetch_summary(@query.results_scope) : []
-    
-    # Genera los resúmenes por usuario solo si los datos están disponibles
     @user_summaries = generate_user_summaries(@summary)
 
     respond_to do |format|
       format.html do
-        # Renderiza el partial sin el layout global
         render partial: 'planilla',
                locals: { summary: @summary, user_summaries: @user_summaries },
                layout: false
@@ -27,18 +23,15 @@ class ActivitySummaryController < ApplicationController
     render json: { error: "Error al filtrar datos: #{e.message}" }, status: :unprocessable_entity
   end
 
-  # Exporta la información filtrada a un archivo CSV
   def export_csv
     @summary = fetch_summary(@query.results_scope)
     
-    # Verificar que el summary tiene datos
     if @summary.empty?
       flash[:error] = "No hay datos para exportar."
       redirect_to activity_summary_index_path
       return
     end
     
-    # Pasar también los resúmenes de usuario
     csv_data = generate_csv(@summary, @user_summaries)
     
     send_data csv_data, filename: "reporte_redmine_#{Date.today}.csv", type: 'text/csv'
@@ -50,11 +43,82 @@ class ActivitySummaryController < ApplicationController
   # Exporta la información filtrada a un archivo Excel (.xlsx)
   def export_to_excel
     @summary = fetch_summary(@query.results_scope)
-    respond_to do |format|
-      format.xlsx do
-        response.headers['Content-Disposition'] = "attachment; filename=activity_summary_#{Date.today}.xlsx"
+    @user_summaries = generate_user_summaries(@summary)
+
+    if @summary.empty?
+      flash[:error] = "No hay datos para exportar."
+      redirect_to activity_summary_index_path
+      return
+    end
+
+    package = Axlsx::Package.new
+    wb = package.workbook
+
+    # Hoja principal con los datos detallados
+    wb.add_worksheet(name: "Resumen de Actividad") do |sheet|
+      sheet.add_row ["Proyecto", "Usuario", "Petición", "Comentario", "Actividad", "Estado", "Fecha", "Horas"]
+      @summary.each do |entry|
+        sheet.add_row [
+          entry.project_name,
+          entry.user_name,
+          entry.petition.presence || '-',
+          entry.comment.presence || '-',
+          entry.activity_name,
+          entry.status,
+          entry.fecha,
+          entry.hours
+        ]
       end
     end
+
+    wb.add_worksheet(name: "Resumen por Usuario") do |sheet|
+      row_offset = 0 # Controla la posición vertical
+    
+      @user_summaries.each do |user_name, user_summary|
+        # Espacio entre tablas (2 filas vacías)
+        sheet.add_row []
+        sheet.add_row []
+    
+        # Encabezado con el nombre del usuario
+        sheet.add_row [user_name], style: wb.styles.add_style(sz: 14, b: true), height: 20
+        row_offset += 1
+    
+        # Encabezados de la tabla
+        sheet.add_row ["Actividad", "Horas", "% Relación"], style: wb.styles.add_style(b: true)
+        row_offset += 1
+    
+        total_percentage = 0.0 # Inicializa el total del porcentaje
+    
+        # Agregar cada actividad del usuario
+        user_summary[:activities].each do |activity|
+          percentage = activity[:percentage].to_f # Convierte el porcentaje a número
+          total_percentage += percentage # Acumula el porcentaje
+    
+          sheet.add_row [
+            activity[:activity_type],
+            activity[:hours],
+            "#{percentage}%"
+          ]
+          row_offset += 1
+        end
+    
+        # Fila total del usuario con total de porcentaje
+        sheet.add_row [
+          "Total:",
+          user_summary[:total_hours],
+          "#{total_percentage.round(2)}%"
+        ], style: wb.styles.add_style(b: true)
+    
+        # Mueve la siguiente tabla 2 filas abajo para separación
+        row_offset += 2
+      end
+    end
+        
+
+    # Enviar el archivo Excel al usuario
+    send_data package.to_stream.read, 
+              filename: "activity_summary_#{Date.today}.xlsx", 
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   rescue StandardError => e
     flash[:error] = "Error al exportar a Excel: #{e.message}"
     redirect_to activity_summary_index_path
@@ -62,8 +126,6 @@ class ActivitySummaryController < ApplicationController
 
   private
 
-  # Inicializa o recupera la consulta (TimeEntryQuery) que define
-  # el conjunto de resultados a mostrar o exportar.
   def retrieve_query
     @query = if params[:query_id].present?
                TimeEntryQuery.find_by(id: params[:query_id]) || TimeEntryQuery.new
@@ -77,11 +139,9 @@ class ActivitySummaryController < ApplicationController
     redirect_to home_path
   end
 
-  # Construye y ejecuta la consulta de datos de time_entries,
-  # incluyendo proyectos, usuarios, issues, estados de issues y enumerations (actividades).
   def fetch_summary(scope)
     return [] unless scope.is_a?(ActiveRecord::Relation)
-
+  
     begin
       results = scope
         .joins(:project, :user)
@@ -95,7 +155,7 @@ class ActivitySummaryController < ApplicationController
           'time_entries.comments AS comment',
           'enumerations.name AS activity_name',
           'issue_statuses.name AS status',
-          'time_entries.spent_on AS fecha',
+          "DATE_FORMAT(time_entries.spent_on, '%d/%m/%Y') AS fecha",  # Formato DD/MM/YYYY
           'time_entries.hours AS hours',
           'time_entries.activity_id AS activity_id'
         )
@@ -106,31 +166,36 @@ class ActivitySummaryController < ApplicationController
       []
     end
   end
-
+  
 
   def generate_user_summaries(entries)
     return {} unless entries.is_a?(Array) && entries.any?
   
     entries.group_by(&:user_name).transform_values do |user_entries|
-      total_hours = user_entries.sum(&:hours)
+      total_hours = user_entries.sum(&:hours).to_i
+      total_entries = user_entries.count
+  
       activities = user_entries.group_by(&:activity_name).map do |activity_type, activity_entries|
-        hours = activity_entries.sum(&:hours)
+        hours = activity_entries.sum(&:hours).to_i
+        entry_count = activity_entries.count
         percentage = total_hours.positive? ? ((hours / total_hours.to_f) * 100).round(2) : 0
-        { activity_type: activity_type, hours: hours, percentage: "#{percentage}%" }
+        { activity_type: activity_type, hours: "#{hours}/#{entry_count}", percentage: "#{percentage}%" }
       end
-      { total_hours: total_hours, activities: activities }
+  
+      { total_hours: "#{total_hours}/#{total_entries}", activities: activities }
     end
-  rescue StandardError
+  rescue StandardError => e
+    puts "Error en generate_user_summaries: #{e.message}"
     {}
   end
   
-
   def generate_csv(summary, user_summaries)
     CSV.generate(headers: true) do |csv|
-      # Encabezados para la planilla general
-      csv << ["Proyecto", "Usuario", "Petición", "Comentario", "Actividad", "Estado", "Fecha", "Horas (Tiempo dedicado)"]
-  
-      # Agregar las entradas de la planilla general
+      # ============================
+      # 1️⃣ RESUMEN DE ACTIVIDAD GENERAL
+      # ============================
+      csv << ["Proyecto", "Usuario", "Petición", "Comentario", "Actividad", "Estado", "Fecha", "Horas"]
+    
       summary.each do |entry|
         csv << [
           entry.project_name,
@@ -144,24 +209,48 @@ class ActivitySummaryController < ApplicationController
         ]
       end
   
-      # Espacio vacío para separar las secciones (si se requiere un cambio de sección)
-      csv << []
-      csv << ["Resumen de Usuario", "Actividad", "Horas", "% Relación"]
+      # ============================
+      # 2️⃣ SEPARACIÓN ENTRE TABLAS
+      # ============================
+      csv << [] # Primera fila vacía
+      csv << [] # Segunda fila vacía
   
-      # Incluir los resúmenes de usuario
+      # ============================
+      # 3️⃣ RESUMEN POR USUARIO
+      # ============================
       user_summaries.each do |user_name, user_summary|
+        csv << [user_name] # Encabezado con el nombre del usuario
+        csv << ["Actividad", "Horas", "% Relación"] # Encabezados de la tabla
+  
+        total_percentage = 0.0 # Inicializa el total de porcentaje para cada usuario
+  
+        # Agregar cada actividad del usuario
         user_summary[:activities].each do |activity|
+          percentage = activity[:percentage].to_f # Convierte el porcentaje a número
+          total_percentage += percentage # Acumula el porcentaje
+  
           csv << [
-            user_name,
             activity[:activity_type],
             activity[:hours],
-            activity[:percentage]
+            "#{percentage}%"
           ]
         end
+  
+        # Fila total del usuario con total de porcentaje
+        csv << [
+          "Total:",
+          user_summary[:total_hours],
+          "#{total_percentage.round(2)}%"
+        ]
+  
+        # ============================
+        # 4️⃣ ESPACIADO ENTRE USUARIOS
+        # ============================
+        csv << [] # Primera fila vacía de separación
+        csv << [] # Segunda fila vacía de separación
       end
     end
   rescue StandardError => e
-    # Si ocurre un error, simplemente retorna un string vacío
     ""
   end
   

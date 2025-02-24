@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Resumen de Actividad") do |sheet|
+  sheet.add_row ["ID", "Usuario", "Tiempo invertido", "Estado"]
+
+  @summary.each do |item|
+    sheet.add_row [item[:id], item[:user], item[:time_spent], item[:status]]
+  end
+end

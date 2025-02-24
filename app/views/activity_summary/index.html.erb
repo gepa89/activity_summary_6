@@ -58,62 +58,91 @@
 <% end %>
 
 <style>
-  /* Estilos para el botón primario */
-  .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-  }
+/* Estilos para el botón primario */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
 
-  .btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #00408d;
-  }
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #00408d;
+}
 
-  /* Fila de título del proyecto */
-  .project-title-row {
-    background-color: #d8dbdf;
-    font-weight: bold;
-    color: #333;
-  }
+/* Fila de título del proyecto */
+.project-title-row {
+  background-color: #d8dbdf;
+  font-weight: bold;
+  color: #333;
+}
 
-  .project-title-row td {
-    padding: 10px;
-  }
+.project-title-row td {
+  padding: 10px;
+}
 
-  /* Contenedor de resumen de usuario */
-  .user-summary-wrapper {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    max-width: 100%; /* Ajusta según sea necesario */
-    padding: 10px; /* Espacio entre el borde y el contenido */
-  }
+/* Contenedor de resumen de usuario */
+.user-summary-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 10px;
+}
 
-  /* Tabla de resumen de usuario */
-  .user-summary-table {
-    flex-shrink: 0; /* Evita que las tablas se contraigan */
-    width: 300px;  /* Establece un tamaño fijo para las tablas */
-    margin-right: 10px; /* Espacio entre tablas */
-    margin-bottom: 20px; /* Espacio debajo de las tablas */
-  }
+/* Tabla de resumen de usuario */
+.user-summary-wrapper div table{
 
-  /* Estilos de las tablas */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th, td {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    white-space: nowrap !important;
+}
+.user-summary-wrapper div table th, .user-summary-wrapper div table td {
     padding: 8px;
     text-align: left;
     border: 1px solid #ddd;
-  }
+    word-wrap: keep-all;
+    overflow-wrap: break-word;
+    white-space: pre;
+}
+/* Contenedor principal de la tabla */
+#planilla-container {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 10px;
+}
 
-  th {
-    background-color: #f8f9fa;
-  }
-  
+/* Estilos generales de la tabla principal (sin afectar tablas de usuario) */
+#planilla-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Controla el ancho de las celdas */
+}
+/* Ajuste de las columnas solo en la tabla principal */
+#planilla-container table th,
+#planilla-container table td {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ddd;
+  word-wrap: keep-all ;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Evitar que las columnas sean demasiado anchas solo en la planilla */
+#planilla-container table td {
+    max-width: 400px !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    white-space: normal;
+}
+/* Estilos para los encabezados de la tabla de la planilla */
+#planilla-container table th {
+  background-color: #f8f9fa;
+  text-align: center;
+}
+
 </style>
 
 

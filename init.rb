@@ -1,12 +1,20 @@
 require_dependency 'redmine'
 
+# Intentar cargar las gemas necesarias para exportar a Excel
+begin
+  require 'axlsx_rails'
+  require 'caxlsx'
+rescue LoadError => e
+  Rails.logger.error "Error al cargar gemas para exportación a Excel: #{e.message}"
+end
+
 Redmine::Plugin.register :activity_summary do
   name 'Resumen de Actividades'
-  author 'Enrique Paredes'
+  author 'IDESA'
   description 'Plugin para generar resúmenes de actividades con filtrado dinámico'
   version '0.0.1'
-  url 'https://github.com/gepa89/activity_summary_6'
-  author_url 'https://github.com/gepa89'
+  url ''
+  author_url ''
 
   # Compatibilidad con Redmine 6.0.3 o superior
   requires_redmine version_or_higher: '6.0.3'
@@ -23,4 +31,6 @@ Redmine::Plugin.register :activity_summary do
        { controller: 'activity_summary', action: 'index', only_path: true },
        caption: 'Resumen de Actividades',
        if: Proc.new { User.current.allowed_to?(:view_activity_summary, nil, global: true) }
+
+  Rails.logger.info "🔹 Plugin 'Resumen de Actividades' cargado correctamente en Redmine."
 end

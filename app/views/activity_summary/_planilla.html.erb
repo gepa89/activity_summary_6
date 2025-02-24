@@ -1,4 +1,12 @@
 <% if summary.present? %>
+<!-- Separador visual -->
+  <div class="separator"></div>
+
+  <div class="buttons">
+    <%= link_to 'Excel', export_to_excel_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %>
+
+  </div>
+
   <!-- Renderizamos las tablas de resumen por usuario aquí -->
   <h3>Resumen Por Usuarios</h3>
 
@@ -104,8 +112,8 @@
   <!-- Separador visual -->
   <div class="separator"></div>
   <div class="buttons">
-    <%= link_to 'Descargar CSV', export_csv_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %>
-   <%#  <%= link_to 'Descargar Excel', export_to_excel_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %> 
+    <%= link_to 'Excel', export_to_excel_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %>
+
   </div>
 
 <% else %>
