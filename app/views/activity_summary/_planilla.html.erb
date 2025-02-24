@@ -1,93 +1,113 @@
-<% if user_summaries.present? %>
-  <% user_summaries.each do |user, summary| %>
-    <div class="user-summary-container">
-      <h3>Resumen de <%= user %></h3>
-      <table class="styled-summary-table">
-        <thead>
-          <tr>
-            <th>Tipo de Actividad</th>
-            <th>Horas</th>
-            <th>% Relación</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% total_percentage = 0 %> <!-- Inicializa el total del porcentaje -->
-          <% summary[:activities].each do |activity| %>
-            <% total_percentage += activity[:percentage].to_f if activity[:percentage].present? %>
-            <tr>
-              <td><%= activity[:activity_type] %></td>
-              <td><%= activity[:hours] %></td>
-              <td><%= activity[:percentage] %></td>
-            </tr>
-          <% end %>
-        </tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td><strong>Total</strong></td>
-            <td><%= summary[:total_hours] %></td>
-            <td><%= total_percentage.round(2) %>%</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  <% end %>
-<% end %>
-
-<div class="separator"></div>
-
 <% if summary.present? %>
-  <% summary.group_by(&:user_name).each do |user_name, user_entries| %>
-    <h3>Planilla de tiempo dedicado</h3>
-    <table class="styled-table">
+  <!-- Renderizamos las tablas de resumen por usuario aquí -->
+  <h3>Resumen Por Usuarios</h3>
+
+  <!-- Contenedor principal con overflow-x para desplazamiento horizontal -->
+  <div style="display: flex; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto;">
+    <% if @user_summaries.present? %>
+      <!-- Iteración sobre los resúmenes de usuario -->
+      <div class="user-summary-wrapper" style="margin-right: 20px; width: 100%;">
+        <% @user_summaries.each do |user_name, summary| %>
+          <div class="issue-list" style="border: 2px solid #c5c5c5; padding: 15px; border-radius: 8px;margin-right:10px;">
+            <h4><%= user_name %></h4>
+            <%= render 'user_summary', summary: summary %>  <!-- Incluye el partial de resumen por usuario -->
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p>No hay resúmenes de usuario disponibles.</p>
+    <% end %>
+  </div>
+
+
+<!-- Separador visual -->
+<div class="separator"></div>
+  <!-- Título de la Vista -->
+  <h3>Resumen General</h3>
+  <!-- Tabla principal con el resumen por proyecto y usuario -->
+  <div id="content" class="issue-list" style="border: 2px solid #c5c5c5; padding: 15px; border-radius: 8px;">
+    <!-- Clases típicas de Redmine: "list issues odd-even sort-by-id sort-desc" -->
+    <table class="list issues odd-even sort-by-id sort-desc" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr>
-          <th>Proyecto</th>
-          <th>Petición</th>
-          <th>Usuario</th>
-          <th>Comentario</th>
-          <th>Actividad</th>
-          <th>Estado</th>
-          <th>Fecha</th>
-          <th>Horas</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Usuario</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Petición</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Comentario</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Actividad</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Estado</th>
+          <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Fecha</th>
+          <th style="text-align: right; border: 1px solid #ddd; padding: 8px;">Horas</th>
         </tr>
       </thead>
       <tbody>
-        <% total_hours = 0 %>
-        <% user_entries.group_by(&:project_name).each do |project_name, project_entries| %>
-          <% project_entries.group_by(&:petition).each do |petition, petition_entries| %>
-            <% rowspan_value = petition_entries.size > 1 ? petition_entries.size : nil %> 
-            <% petition_entries.each_with_index do |entry, index| %>
-              <% total_hours += entry.hours %>
-              <tr>
-                <% if index == 0 && rowspan_value %>
-                  <td rowspan="<%= rowspan_value %>"><%= project_name %></td>
-                  <td rowspan="<%= rowspan_value %>"><%= petition %></td>
-                  <td rowspan="<%= rowspan_value %>"><%= user_name %></td>
-                <% end %>
-                <td><%= entry.comment %></td>
-                <td><%= entry.activity_name %></td>
-                <td><%= entry.status %></td>
-                <td><%= entry.fecha %></td>
-                <td><%= entry.hours %></td>
-              </tr>
+        <% total_hours = 0 %> <!-- Inicializamos la variable para el total de horas -->
+        
+        <!-- Agrupamos las entradas por proyecto -->
+        <% summary.group_by(&:project_name).each do |project_name, project_entries| %>
+          <% total_project_hours = project_entries.sum(&:hours) %>
+          <% total_hours += total_project_hours %> <!-- Sumamos las horas de cada proyecto -->
+          
+          <!-- Fila resumen del proyecto -->
+          <tr class="project-summary-row" style="background-color: #b6cadd; font-weight: bold;">
+            <td colspan="7" style="text-align: left; padding: 8px;">
+              <%= project_name %>
+              <span style="float: right;">
+                Total de horas: <%= total_project_hours %>
+              </span>
+            </td>
+          </tr>
+
+          <!-- Dentro de cada proyecto, agrupamos por usuario -->
+          <% project_entries.group_by(&:user_name).each_with_index do |(user_name, user_items), user_index| %>
+            <% user_rowspan = user_items.size %>
+
+            <!-- Agrupamos por petición -->
+            <% user_items.group_by(&:petition).each_with_index do |(petition, petition_entries), petition_index| %>
+              <% petition_rowspan = petition_entries.size %>
+
+              <!-- Renderizamos cada entrada -->
+              <% petition_entries.each_with_index do |item, i| %>
+                <% row_class = (i + petition_index + user_index).even? ? 'even' : 'odd' %>
+                <tr class="hascontextmenu issue <%= row_class %>" style="border-top: 1px solid #ddd;">
+                  
+                  <!-- Celda de Usuario con rowspan -->
+                  <% if petition_index == 0 && i == 0 %>
+                    <td style="text-align: left;" rowspan="<%= user_rowspan %>"><%= user_name %></td>
+                  <% end %>
+
+                  <!-- Celda de Petición con rowspan -->
+                  <% if i == 0 %>
+                    <td style="text-align: left;" rowspan="<%= petition_rowspan %>"><%= petition.presence || '-' %></td>
+                  <% end %>
+
+                  <td style="text-align: left; padding: 8px;"><%= item.comment.presence || '-' %></td>
+                  <td style="text-align: left; padding: 8px;"><%= item.activity_name %></td>
+                  <td style="text-align: left; padding: 8px;"><%= item.status %></td>
+                  <td style="text-align: left; padding: 8px;"><%= item.fecha %></td>
+                  <td style="text-align: right; padding: 8px;"><%= item.hours %></td>
+                </tr>
+              <% end %>
             <% end %>
           <% end %>
         <% end %>
-      </tbody>
-      <tfoot>
-        <tr class="total-row">
-          <td colspan="7" style="text-align: right;"><strong>Total de Horas:</strong></td>
-          <td><%= total_hours %></td>
+
+        <!-- Fila de total de horas -->
+        <tr class="footer-row" style="background-color: #333333; font-weight: bold; color: #ffffff;">
+          <td colspan="6" style="text-align: right; padding: 8px;">Total Horas Registradas:</td>
+          <td style="text-align: right; padding: 8px;"><%= total_hours %></td>
         </tr>
-      </tfoot>
+        
+      </tbody>
     </table>
-
-    <div class="separator"></div>
-  <% end %>
-<% else %>
-  <div class="no-results">
-    <p>No hay registros disponibles con los filtros seleccionados.</p>
   </div>
-<% end %>
 
-<%= link_to 'Exportar CSV', activity_summary_export_csv_path(request.query_parameters), class: 'btn-export' %>
+  <!-- Separador visual -->
+  <div class="separator"></div>
+  <div class="buttons">
+    <%= link_to 'Descargar CSV', export_csv_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %>
+   <%#  <%= link_to 'Descargar Excel', export_to_excel_activity_summary_index_path(query_id: @query.id), class: 'icon icon-download btn btn-success', method: :get %> 
+  </div>
+
+<% else %>
+  <p>No hay datos para mostrar.</p>
+<% end %>

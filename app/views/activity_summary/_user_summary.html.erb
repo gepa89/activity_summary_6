@@ -1,0 +1,34 @@
+<table class="list issues odd-even sort-by-id sort-desc" style="width: 100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="text-align: left; border: 1px solid #ddd; padding: 8px;">Actividad</th>
+      <th style="text-align: right; border: 1px solid #ddd; padding: 8px;">Horas</th>
+      <th style="text-align: right; border: 1px solid #ddd; padding: 8px;">% Relación</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% total_hours = 0 %>  <!-- Inicializamos la variable para el total de horas -->
+
+    <% summary[:activities].each do |activity| %>
+      <tr>
+        <td style="text-align: left; border: 1px solid #ddd; padding: 8px;"><%= activity[:activity_type] %></td>
+        <td style="text-align: right; border: 1px solid #ddd; padding: 8px;"><%= activity[:hours] %></td>
+        <td style="text-align: right; border: 1px solid #ddd; padding: 8px;"><%= activity[:percentage] %></td>
+      </tr>
+      <% total_hours += activity[:hours].to_f %>  <!-- Acumulamos las horas -->
+    <% end %>
+
+    <!-- Fila de total de horas -->
+    <tr class="footer-row" style="font-weight: bold; background-color: #f1f1f1;">
+      <td style="text-align: left; padding: 8px;">Totales:</td>
+      <td style="text-align: right; padding: 8px;"><%= total_hours %></td>  <!-- Mostramos el total acumulado de horas -->
+      <td style="text-align: right; padding: 8px;">
+        <% if total_hours > 0 %>
+          <%= ((total_hours / total_hours) * 100).round(2) %>  <!-- Muestra el 100% porque es el total acumulado -->
+        <% else %>
+          0%
+        <% end %>
+      </td>  
+    </tr>
+  </tbody>
+</table>

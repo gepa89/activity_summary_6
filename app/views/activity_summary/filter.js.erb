@@ -1,0 +1,5 @@
+<% if @summary.present? %>
+  $("#planilla-container").html("<%= j render 'planilla', summary: @summary %>");
+<% else %>
+  $("#planilla-container").html('<div class="no-results"><p>No hay registros disponibles con los filtros seleccionados.</p></div>');
+<% end %>

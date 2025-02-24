@@ -1,9 +1,11 @@
-<h3>Planilla de Detalle</h3>
+<%# app/views/activity_summary/index.html.erb %>
 
+<!-- Título de la Vista -->
+<h3>Resumen de Actividades</h3>
+
+<!-- Formulario de Filtros con AJAX -->
 <div class="query_form_with_buttons">
-  <form id="query_form" class="query-form" action="<%= activity_summary_index_path %>" accept-charset="UTF-8" method="get">
-    
-    <!-- 🔹 Sección de filtros de Redmine -->
+  <%= form_with url: filter_activity_summary_index_path, method: :get, remote: true, id: 'query_form' do |f| %>
     <fieldset class="collapsible filters">
       <legend onclick="toggleFieldset(this);" class="icon icon-expanded">
         <svg class="s18 icon-svg" aria-hidden="true">
@@ -13,17 +15,17 @@
       </legend>
       <div id="query_form_content">
         <%= render partial: 'queries/filters', locals: { query: @query } %>
+        <%= hidden_field_tag :set_filter, 1 %>
       </div>
     </fieldset>
 
     <p class="buttons">
-      <a href="#" onclick="$('#query_form').submit(); return false;" class="icon icon-checked">
+      <button type="submit" class="btn btn-primary">
         <svg class="s18 icon-svg" aria-hidden="true">
           <use href="<%= asset_path('icons.svg') %>#icon--checked"></use>
         </svg>
         <span class="icon-label"><%= l(:button_apply) %></span>
-      </a>
-
+      </button>
       <a class="icon icon-reload" href="<%= activity_summary_index_path(set_filter: 1, sort: '') %>">
         <svg class="s18 icon-svg" aria-hidden="true">
           <use href="<%= asset_path('icons.svg') %>#icon--reload"></use>
@@ -31,22 +33,127 @@
         <span class="icon-label"><%= l(:button_clear) %></span>
       </a>
     </p>
-  </form>
+  <% end %>
 </div>
 
-<!-- 🔹 Separador -->
+<!-- Indicador de carga (oculto por defecto) -->
+<div id="loading-indicator" style="display: none; text-align: center; font-weight: bold;">
+  <p>Cargando datos...</p>
+</div>
+
+<!-- Separador visual -->
 <div class="separator"></div>
 
-<!-- 🔹 Contenedor para la tabla de resultados -->
+<!-- Contenedor donde se renderizará la tabla filtrada vía AJAX -->
 <div id="planilla-container"></div>
 
-<!-- 🔹 Incluir los estilos de Redmine -->
 <% content_for :header_tags do %>
+  <!-- Estilos principales de Redmine -->
   <%= stylesheet_link_tag 'application' %>
   <%= stylesheet_link_tag 'responsive' %>
+
+  <!-- Scripts principales de Redmine -->
   <%= javascript_include_tag 'application' %>
   <%= javascript_include_tag 'responsive' %>
-  <%= javascript_include_tag asset_path('i18n/datepicker-en-US.js') %>
-
 <% end %>
 
+<style>
+  /* Estilos para el botón primario */
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #00408d;
+  }
+
+  /* Fila de título del proyecto */
+  .project-title-row {
+    background-color: #d8dbdf;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .project-title-row td {
+    padding: 10px;
+  }
+
+  /* Contenedor de resumen de usuario */
+  .user-summary-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    max-width: 100%; /* Ajusta según sea necesario */
+    padding: 10px; /* Espacio entre el borde y el contenido */
+  }
+
+  /* Tabla de resumen de usuario */
+  .user-summary-table {
+    flex-shrink: 0; /* Evita que las tablas se contraigan */
+    width: 300px;  /* Establece un tamaño fijo para las tablas */
+    margin-right: 10px; /* Espacio entre tablas */
+    margin-bottom: 20px; /* Espacio debajo de las tablas */
+  }
+
+  /* Estilos de las tablas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f8f9fa;
+  }
+  
+</style>
+
+
+
+<!-- JS inline del plugin: manejo del indicador de carga + fetch con query string -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Manejamos el indicador de carga con jQuery UJS
+  $("#query_form").on("ajax:beforeSend", function() {
+    $("#loading-indicator").show();
+    $("#planilla-container").fadeOut(200);
+  });
+
+  $("#query_form").on("ajax:complete", function() {
+    $("#loading-indicator").hide();
+    $("#planilla-container").fadeIn(300);
+  });
+
+  // Interceptamos el envío para convertir el form en query params en la URL
+  var form = document.getElementById('query_form');
+  form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Evita el envío normal del formulario
+    var formData = new FormData(form);
+
+    // Convertimos el formData en query string
+    var queryParams = new URLSearchParams(formData).toString();
+    var urlConParametros = form.action + "?" + queryParams;
+
+    fetch(urlConParametros, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Ahora `html` contiene solo <table> ... </table>
+      document.getElementById('planilla-container').innerHTML = html;
+    })
+    .catch(error => console.error('Error:', error));
+  });
+});
+</script>
